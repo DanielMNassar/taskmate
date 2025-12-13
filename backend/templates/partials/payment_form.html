@@ -1,0 +1,39 @@
+<form hx-post="/ui/payments"
+      hx-target="#alert-container"
+      hx-swap="innerHTML"
+      hx-on::after-request="if(event.detail.successful) { document.getElementById('paymentModal').querySelector('.btn-close').click(); hx-get('/ui/requests/table').then(r => document.getElementById('requests-table-container').innerHTML = r); }">
+    <input type="hidden" name="request_id" value="{{ request_id }}">
+    
+    <div class="mb-3">
+        <label for="amount" class="form-label">Amount *</label>
+        <input type="number" class="form-control" id="amount" name="amount" step="0.01" min="0" required>
+    </div>
+    
+    <div class="mb-3">
+        <label for="payment_method" class="form-label">Payment Method *</label>
+        <select class="form-select" id="payment_method" name="payment_method" required>
+            <option value="">Select method...</option>
+            <option value="credit_card">Credit Card</option>
+            <option value="debit_card">Debit Card</option>
+            <option value="cash">Cash</option>
+            <option value="paypal">PayPal</option>
+            <option value="bank_transfer">Bank Transfer</option>
+        </select>
+    </div>
+    
+    <div class="mb-3">
+        <label for="payment_status" class="form-label">Payment Status</label>
+        <select class="form-select" id="payment_status" name="payment_status">
+            <option value="pending">Pending</option>
+            <option value="completed" selected>Completed</option>
+            <option value="failed">Failed</option>
+            <option value="refunded">Refunded</option>
+        </select>
+    </div>
+    
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Create Payment</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+    </div>
+</form>
+

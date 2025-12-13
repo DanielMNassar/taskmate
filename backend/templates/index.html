@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Home Service Management{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Home Service Management</h1>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Search Providers Section -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Search Providers</h5>
+            </div>
+            <div class="card-body">
+                <form hx-get="/ui/providers/search" 
+                      hx-target="#providers-results" 
+                      hx-trigger="submit"
+                      hx-swap="innerHTML">
+                    <div class="mb-3">
+                        <label for="area_id" class="form-label">Service Area</label>
+                        <select class="form-select" id="area_id" name="area_id">
+                            <option value="">All Areas</option>
+                            {% for area in areas %}
+                            <option value="{{ area.area_id }}">{{ area.city }}, {{ area.district }} ({{ area.postal_code }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="category_id" class="form-label">Service Category</label>
+                        <select class="form-select" id="category_id" name="category_id">
+                            <option value="">All Categories</option>
+                            {% for category in categories %}
+                            <option value="{{ category.category_id }}">{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Search</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Request Form Section (shown after selecting provider) -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Request Service</h5>
+            </div>
+            <div class="card-body" id="request-form-container">
+                <p class="text-muted">Select a provider from the search results to request a service.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Providers Results -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Available Providers</h5>
+            </div>
+            <div class="card-body">
+                <div id="providers-results">
+                    <p class="text-muted">Use the search form above to find providers.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

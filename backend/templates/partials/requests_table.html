@@ -1,0 +1,115 @@
+{% if requests %}
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Category</th>
+                <th>Provider</th>
+                <th>Area</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Cost</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for request in requests %}
+            <tr>
+                <td>{{ request.request_id }}</td>
+                <td>
+                    {% if request.category %}
+                        {{ request.category.name }}
+                    {% else %}
+                        <span class="text-muted">N/A</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if request.provider %}
+                        {{ request.provider.first_name }} {{ request.provider.last_name }}
+                    {% else %}
+                        <span class="text-muted">Unassigned</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if request.area %}
+                        {{ request.area.city }}, {{ request.area.district }}
+                    {% else %}
+                        <span class="text-muted">N/A</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if request.status == 'pending' %}
+                        <span class="badge bg-warning">Pending</span>
+                    {% elif request.status == 'accepted' %}
+                        <span class="badge bg-info">Accepted</span>
+                    {% elif request.status == 'in_progress' %}
+                        <span class="badge bg-primary">In Progress</span>
+                    {% elif request.status == 'completed' %}
+                        <span class="badge bg-success">Completed</span>
+                    {% elif request.status == 'cancelled' %}
+                        <span class="badge bg-danger">Cancelled</span>
+                    {% endif %}
+                </td>
+                <td>{{ request.request_date.strftime('%Y-%m-%d') if request.request_date else 'N/A' }}</td>
+                <td>
+                    {% if request.cost %}
+                        ${{ "%.2f"|format(request.cost) }}
+                    {% else %}
+                        <span class="text-muted">N/A</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="d-flex gap-1 align-items-center">
+                        <form hx-patch="/ui/requests/{{ request.request_id }}/status"
+                              hx-target="#requests-table-container"
+                              hx-swap="innerHTML"
+                              class="d-inline-flex gap-1">
+                            <select name="status" class="form-select form-select-sm" style="width: auto;">
+                                <option value="pending" {% if request.status == 'pending' %}selected{% endif %}>Pending</option>
+                                <option value="accepted" {% if request.status == 'accepted' %}selected{% endif %}>Accepted</option>
+                                <option value="in_progress" {% if request.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                                <option value="completed" {% if request.status == 'completed' %}selected{% endif %}>Completed</option>
+                                <option value="cancelled" {% if request.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-primary">Update</button>
+                        </form>
+                        {% if request.status == 'completed' %}
+                        <button class="btn btn-sm btn-success"
+                                hx-get="/ui/payments/form?request_id={{ request.request_id }}"
+                                hx-target="#payment-form-modal"
+                                hx-swap="innerHTML"
+                                data-bs-toggle="modal"
+                                data-bs-target="#paymentModal">
+                            Pay
+                        </button>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Payment Modal -->
+<div class="modal fade" id="paymentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create Payment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="payment-form-modal">
+                Loading...
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-info">
+    <p class="mb-0">No service requests found. Create a request from the home page.</p>
+    <a href="/ui" class="btn btn-primary btn-sm mt-2">Go to Home</a>
+</div>
+{% endif %}
+

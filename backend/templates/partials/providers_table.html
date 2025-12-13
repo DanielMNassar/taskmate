@@ -1,0 +1,54 @@
+{% if providers %}
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Hourly Rate</th>
+                <th>Availability</th>
+                <th>Area</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for provider in providers %}
+            <tr>
+                <td>{{ provider.provider_id }}</td>
+                <td>{{ provider.first_name }} {{ provider.last_name }}</td>
+                <td>${{ "%.2f"|format(provider.hourly_rate) }}</td>
+                <td>
+                    {% if provider.availability_status == 'available' %}
+                        <span class="badge bg-success">Available</span>
+                    {% elif provider.availability_status == 'busy' %}
+                        <span class="badge bg-warning">Busy</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Unavailable</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if provider.area %}
+                        {{ provider.area.city }}, {{ provider.area.district }}
+                    {% else %}
+                        <span class="text-muted">N/A</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-primary btn-action"
+                            hx-get="/ui/service-requests/form?provider_id={{ provider.provider_id }}&area_id={{ provider.area_id if provider.area else '' }}"
+                            hx-target="#request-form-container"
+                            hx-swap="innerHTML">
+                        Request Service
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info">
+    <p class="mb-0">No providers found matching your criteria.</p>
+</div>
+{% endif %}
+

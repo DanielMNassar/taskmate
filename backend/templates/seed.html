@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Seed Demo Data - Home Service Management{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Seed Demo Data</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Demo Data Inserted</h5>
+            </div>
+            <div class="card-body">
+                {% if inserted %}
+                <div class="alert alert-success">
+                    <h6>Successfully inserted:</h6>
+                    <ul>
+                        {% if inserted.areas %}
+                        <li>{{ inserted.areas }} service area(s)</li>
+                        {% endif %}
+                        {% if inserted.categories %}
+                        <li>{{ inserted.categories }} service category(ies)</li>
+                        {% endif %}
+                        {% if inserted.providers %}
+                        <li>{{ inserted.providers }} service provider(s)</li>
+                        {% endif %}
+                        {% if inserted.customer %}
+                        <li>1 customer (ID: {{ inserted.customer }})</li>
+                        {% endif %}
+                    </ul>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <p>No data was inserted. The database may already contain data.</p>
+                </div>
+                {% endif %}
+                <a href="/ui" class="btn btn-primary">Go to Home</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

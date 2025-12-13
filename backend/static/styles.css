@@ -1,0 +1,42 @@
+/* Custom styles for Home Service Management System */
+
+body {
+    padding-top: 56px; /* Account for fixed navbar */
+}
+
+.card {
+    margin-bottom: 1.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    font-weight: 600;
+}
+
+.status-badge {
+    font-size: 0.875rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.table-responsive {
+    border-radius: 0.375rem;
+}
+
+.btn-action {
+    margin: 0.125rem;
+}
+
+#providers-results {
+    min-height: 200px;
+}
+
+.alert-container {
+    position: fixed;
+    top: 70px;
+    right: 20px;
+    z-index: 1050;
+    max-width: 400px;
+}
+
