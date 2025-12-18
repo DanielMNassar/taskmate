@@ -1,54 +1,110 @@
 {% if providers %}
-<div class="table-responsive">
-    <table class="table table-hover">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Hourly Rate</th>
-                <th>Availability</th>
-                <th>Area</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for provider in providers %}
-            <tr>
-                <td>{{ provider.provider_id }}</td>
-                <td>{{ provider.first_name }} {{ provider.last_name }}</td>
-                <td>${{ "%.2f"|format(provider.hourly_rate) }}</td>
-                <td>
-                    {% if provider.availability_status == 'available' %}
-                        <span class="badge bg-success">Available</span>
-                    {% elif provider.availability_status == 'busy' %}
-                        <span class="badge bg-warning">Busy</span>
-                    {% else %}
-                        <span class="badge bg-secondary">Unavailable</span>
-                    {% endif %}
-                </td>
-                <td>
+<div class="grid grid-3">
+    {% for provider in providers %}
+    <div class="provider-card">
+        <!-- Provider Avatar & Info -->
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem;">
+            <div class="provider-avatar">
+                {{ provider.first_name[0] }}{{ provider.last_name[0] }}
+            </div>
+            <div style="flex: 1;">
+                <div class="provider-name">
+                    {{ provider.first_name }} {{ provider.last_name }}
+                </div>
+                <div class="provider-id">
+                    ID: #{{ provider.provider_id }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Availability Status -->
+        {% if provider.availability_status == 'available' or provider.availability_status.value == 'available' %}
+            <div class="provider-status status-available" style="width: 100%;">
+                ✓ Available Now
+            </div>
+        {% elif provider.availability_status == 'busy' or provider.availability_status.value == 'busy' %}
+            <div class="provider-status status-busy" style="width: 100%;">
+                ⏰ Currently Busy
+            </div>
+        {% else %}
+            <div class="provider-status status-unavailable" style="width: 100%;">
+                ✗ Unavailable
+            </div>
+        {% endif %}
+
+        <hr style="border: none; height: 2px; background: linear-gradient(to right, transparent, #e2e8f0, transparent); margin: 1.5rem 0;">
+
+        <!-- Provider Details -->
+        <div class="provider-details">
+            <!-- Location -->
+            <div class="provider-detail">
+                <div style="color: #667eea;">📍</div>
+                <div style="flex: 1;">
+                    <div class="provider-detail-label">Location</div>
                     {% if provider.area %}
-                        {{ provider.area.city }}, {{ provider.area.district }}
+                        <div class="provider-detail-value">{{ provider.area.city }}, {{ provider.area.district }}</div>
                     {% else %}
-                        <span class="text-muted">N/A</span>
+                        <div style="color: #a0aec0; font-style: italic;">Not specified</div>
                     {% endif %}
-                </td>
-                <td>
-                    <button class="btn btn-sm btn-primary btn-action"
-                            hx-get="/ui/service-requests/form?provider_id={{ provider.provider_id }}&area_id={{ provider.area_id if provider.area else '' }}"
-                            hx-target="#request-form-container"
-                            hx-swap="innerHTML">
-                        Request Service
-                    </button>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                </div>
+            </div>
+
+            <!-- Hourly Rate -->
+            <div class="provider-detail">
+                <div style="color: #48bb78;">💰</div>
+                <div style="flex: 1;">
+                    <div class="provider-detail-label">Hourly Rate</div>
+                    <div>
+                        <span class="provider-rate">${{ "%.2f"|format(provider.hourly_rate) }}</span>
+                        <span style="color: #718096; font-size: 0.875rem; font-weight: 500;">/hour</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Categories -->
+            {% if provider.categories %}
+            <div class="provider-detail">
+                <div style="color: #ed8936;">📋</div>
+                <div style="flex: 1;">
+                    <div class="provider-detail-label">Services</div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem;">
+                        {% for provider_category in provider.categories %}
+                            <span style="background: #edf2f7; color: #2d3748; padding: 0.375rem 0.75rem; border-radius: 8px; font-size: 0.75rem; font-weight: 600;">
+                                {{ provider_category.category.name }}
+                            </span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Action Button -->
+        {% if user and user.role == 'customer' %}
+        <button class="btn" 
+                hx-get="/ui/service-requests/form?provider_id={{ provider.provider_id }}&area_id={{ provider.area_id if provider.area else '' }}"
+                hx-target="#request-form-container"
+                hx-swap="innerHTML"
+                style="width: 100%; margin-top: 1.5rem;">
+            📝 Request Service
+        </button>
+        {% else %}
+        <a href="/ui/login" class="btn btn-secondary" style="width: 100%; margin-top: 1.5rem; text-decoration: none;">
+            🔐 Login to Request Service
+        </a>
+        {% endif %}
+    </div>
+    {% endfor %}
 </div>
 {% else %}
-<div class="alert alert-info">
-    <p class="mb-0">No providers found matching your criteria.</p>
+<div class="empty">
+    <div class="empty-icon">🔍</div>
+    <h5 style="color: #4a5568; font-size: 1.25rem; margin-bottom: 0.75rem;">No Providers Found</h5>
+    <p style="color: #718096; font-size: 0.9375rem; max-width: 400px; margin: 0 auto 1.5rem;">
+        We couldn't find any providers matching your search criteria. Try adjusting your filters or expanding your search area.
+    </p>
+    <button class="btn btn-secondary" onclick="window.location.reload();">
+        🔄 Reset Filters
+    </button>
 </div>
 {% endif %}
-

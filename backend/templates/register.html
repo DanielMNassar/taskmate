@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Register • TaskMate{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+  <div class="card auth-card">
+    <div style="text-align: center; margin-bottom: 2rem;">
+      <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; box-shadow: 0 10px 30px rgba(72, 187, 120, 0.3);">
+        <span style="font-size: 2.5rem;">✨</span>
+      </div>
+      <h2 style="margin-bottom: 0.5rem;">Create your account</h2>
+      <p class="muted">Join as a customer or provider</p>
+    </div>
+
+    {% if error %}
+    <div class="alert alert-error">
+      {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="post" action="/ui/register" class="form">
+      <div>
+        <label class="label">I want to register as</label>
+        <select class="select" name="role" required id="role-select">
+          <option value="customer">Customer — Find and book services</option>
+          <option value="provider">Service Provider — Offer my services</option>
+        </select>
+      </div>
+
+      <div class="grid2">
+        <div>
+          <label class="label">First name</label>
+          <input class="input" name="first_name" placeholder="John" required />
+        </div>
+        <div>
+          <label class="label">Last name</label>
+          <input class="input" name="last_name" placeholder="Doe" required />
+        </div>
+      </div>
+
+      <div>
+        <label class="label">Email address</label>
+        <input class="input" name="email" type="email" placeholder="your@email.com" required />
+      </div>
+
+      <div>
+        <label class="label">Phone number</label>
+        <input class="input" name="phone" type="tel" placeholder="+961 70 123456" required />
+      </div>
+
+      <div>
+        <label class="label">Service Area</label>
+        <select class="select" name="area_id" required>
+          <option value="">Select your area</option>
+          {% for a in areas %}
+            <option value="{{ a.area_id }}">{{ a.city }} - {{ a.district }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label class="label">Address</label>
+        <input class="input" name="address" placeholder="Street, Building, City..." required />
+      </div>
+
+      <div id="hourly-rate-field">
+        <label class="label">Hourly Rate (for providers)</label>
+        <div style="position: relative;">
+          <span style="position: absolute; left: 1.125rem; top: 50%; transform: translateY(-50%); color: #4a5568; font-weight: 600;">$</span>
+          <input class="input" name="hourly_rate" type="number" step="0.01" value="0" placeholder="25.00" style="padding-left: 2.5rem;" />
+        </div>
+        <small style="color: #718096; font-size: 0.8125rem; margin-top: 0.5rem; display: block;">
+          Set to 0 if you're registering as a customer
+        </small>
+      </div>
+
+      <div class="grid2">
+        <div>
+          <label class="label">Password</label>
+          <input class="input" name="password" type="password" placeholder="••••••••" required />
+        </div>
+        <div>
+          <label class="label">Confirm Password</label>
+          <input class="input" name="confirm_password" type="password" placeholder="••••••••" required />
+        </div>
+      </div>
+
+      <button class="btn" type="submit" style="width: 100%; margin-top: 0.5rem;">
+        ✨ Create account
+      </button>
+    </form>
+
+    <div style="text-align: center; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px solid #f0f0f0;">
+      <span class="muted">Already have an account?</span>
+      <a href="/ui/login" style="color: #667eea; font-weight: 600; margin-left: 0.5rem; text-decoration: none;">
+        Sign in →
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+// Show/hide hourly rate field based on role
+document.getElementById('role-select').addEventListener('change', function() {
+    var hourlyRateField = document.getElementById('hourly-rate-field');
+    if (this.value === 'provider') {
+        hourlyRateField.style.display = 'block';
+    } else {
+        hourlyRateField.style.display = 'none';
+    }
+});
+
+// Initialize on page load
+if (document.getElementById('role-select').value === 'customer') {
+    document.getElementById('hourly-rate-field').style.display = 'none';
+}
+</script>
+{% endblock %}

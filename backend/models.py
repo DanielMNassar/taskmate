@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, DECIMAL, ForeignKey, Enum, CheckConstraint, UniqueConstraint
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Float, Boolean, UniqueConstraint, CheckConstraint, Enum, Text
+from sqlalchemy.dialects.mysql import DECIMAL
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import enum
@@ -74,11 +75,12 @@ class Customer(Base):
     customer_id = Column(Integer, primary_key=True, autoincrement=True)
     first_name = Column(String(50), nullable=False)
     last_name = Column(String(50), nullable=False)
-    email = Column(String(100), nullable=False, unique=True)
     phone = Column(String(30), nullable=False)
+    email = Column(String(100), nullable=False, unique=True, index=True)
     address = Column(String(255), nullable=False)
     area_id = Column(Integer, ForeignKey("service_area.area_id", ondelete="SET NULL", onupdate="CASCADE"))
     registration_date = Column(DateTime, server_default=func.now())
+    password_hash = Column(String(255), nullable=False)
 
     # Relationships
     area = relationship("ServiceArea", back_populates="customers")
@@ -92,23 +94,21 @@ class ServiceProvider(Base):
     provider_id = Column(Integer, primary_key=True, autoincrement=True)
     first_name = Column(String(50), nullable=False)
     last_name = Column(String(50), nullable=False)
-    email = Column(String(100), nullable=False, unique=True)
     phone = Column(String(30), nullable=False)
+    email = Column(String(100), nullable=False, unique=True, index=True)
     address = Column(String(255), nullable=False)
     area_id = Column(Integer, ForeignKey("service_area.area_id", ondelete="SET NULL", onupdate="CASCADE"))
     hourly_rate = Column(DECIMAL(10, 2), nullable=False)
     availability_status = Column(Enum(AvailabilityStatus), default=AvailabilityStatus.available)
     date_joined = Column(DateTime, server_default=func.now())
-
-    __table_args__ = (
-        CheckConstraint('hourly_rate >= 0', name='check_hourly_rate'),
-    )
+    password_hash = Column(String(255), nullable=False)
 
     # Relationships
     area = relationship("ServiceArea", back_populates="providers")
     categories = relationship("ProviderCategory", back_populates="provider", cascade="all, delete-orphan")
     service_requests = relationship("ServiceRequest", back_populates="provider")
     reviews = relationship("Review", back_populates="provider", cascade="all, delete-orphan")
+
 
 
 class ProviderCategory(Base):

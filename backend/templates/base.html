@@ -1,60 +1,69 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Home Service Management{% endblock %}</title>
-    
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- HTMX -->
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="/static/styles.css">
-    
-    {% block extra_head %}{% endblock %}
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}TaskMate{% endblock %}</title>
+
+  <link rel="stylesheet" href="/static/styles.css" />
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="/ui">Home Service Management</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/ui">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/ui/requests">My Requests</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/ui/seed">Seed Demo Data</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/docs" target="_blank">API Docs</a>
-                    </li>
-                </ul>
-            </div>
+  <!-- Sticky Top Navbar -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/ui/">
+        <span class="brand-mark">⚡</span>
+        <span class="brand-text">TaskMate</span>
+      </a>
+
+      <nav class="nav">
+        <a class="nav-link" href="/ui/">Home</a>
+        
+        {% if user %}
+          {% if user.role == 'customer' %}
+            <a class="nav-link" href="/ui/requests">My Requests</a>
+          {% elif user.role == 'provider' %}
+            <a class="nav-link" href="/ui/provider">Dashboard</a>
+          {% endif %}
+        {% endif %}
+
+        <a class="nav-link" href="/docs" target="_blank">API Docs</a>
+
+        <div class="nav-right">
+          {% if user %}
+            <span class="chip">
+              Hi, {{ user.name }}
+              {% if user.role == 'customer' %}
+                <span style="background: #3b82f6; color: white; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Customer</span>
+              {% elif user.role == 'provider' %}
+                <span style="background: #10b981; color: white; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Provider</span>
+              {% endif %}
+            </span>
+            <form method="post" action="/ui/logout" style="display:inline;">
+              <button class="btn btn-ghost" type="submit" style="padding: 0.625rem 1.25rem;">Logout</button>
+            </form>
+          {% else %}
+            <a class="btn btn-ghost" href="/ui/login" style="padding: 0.625rem 1.25rem; text-decoration: none;">Login</a>
+            <a class="btn" href="/ui/register" style="background: white; color: #667eea; padding: 0.625rem 1.25rem; text-decoration: none;">Register</a>
+          {% endif %}
         </div>
-    </nav>
-
-    <!-- Alert Container -->
-    <div id="alert-container" class="alert-container"></div>
-
-    <!-- Main Content -->
-    <div class="container-fluid mt-4">
-        {% block content %}{% endblock %}
+      </nav>
     </div>
+  </header>
 
-    <!-- Bootstrap 5 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    
-    {% block extra_scripts %}{% endblock %}
+  <!-- Main Content -->
+  <main class="container" style="padding-top: 2.5rem; padding-bottom: 3rem; min-height: calc(100vh - 200px);">
+    {% if error %}
+      <div class="alert alert-error">{{ error }}</div>
+    {% endif %}
+    {% if success %}
+      <div class="alert alert-success">{{ success }}</div>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- HTMX -->
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
 </body>
 </html>
-

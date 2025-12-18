@@ -1,0 +1,319 @@
+{% if requests %}
+<div style="display: flex; flex-direction: column; gap: 1.5rem;">
+    {% for request in requests %}
+    <div class="request-card">
+        <!-- Request Header -->
+        <div class="request-header">
+            <div>
+                <div class="request-id">
+                    Request #{{ request.request_id }}
+                    {% if request.category %}
+                        — {{ request.category.name }}
+                    {% endif %}
+                </div>
+                <div class="request-date">
+                    📅 {{ request.request_date.strftime('%b %d, %Y at %I:%M %p') if request.request_date else 'N/A' }}
+                </div>
+            </div>
+            
+            <!-- Status Badge -->
+            <div>
+                {% if request.status == 'pending' or request.status.value == 'pending' %}
+                    <span class="badge badge-pending">
+                        ⏳ Pending
+                    </span>
+                {% elif request.status == 'accepted' or request.status.value == 'accepted' %}
+                    <span class="badge badge-accepted">
+                        ✓ Accepted
+                    </span>
+                {% elif request.status == 'in_progress' or request.status.value == 'in_progress' %}
+                    <span class="badge badge-in_progress">
+                        🔄 In Progress
+                    </span>
+                {% elif request.status == 'completed' or request.status.value == 'completed' %}
+                    <span class="badge badge-completed">
+                        ✓ Completed
+                    </span>
+                {% elif request.status == 'cancelled' or request.status.value == 'cancelled' %}
+                    <span class="badge badge-cancelled">
+                        ✗ Cancelled
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Request Body -->
+        <div class="request-body">
+            <!-- Provider -->
+            <div class="request-info">
+                <div class="request-label">👤 Provider</div>
+                {% if request.provider %}
+                    <div class="request-value">{{ request.provider.first_name }} {{ request.provider.last_name }}</div>
+                    <div style="color: #718096; font-size: 0.875rem;">📧 {{ request.provider.email }}</div>
+                    <div style="color: #718096; font-size: 0.875rem;">📞 {{ request.provider.phone }}</div>
+                {% else %}
+                    <div style="color: #a0aec0; font-style: italic;">Unassigned</div>
+                {% endif %}
+            </div>
+
+            <!-- Location -->
+            <div class="request-info">
+                <div class="request-label">📍 Location</div>
+                {% if request.area %}
+                    <div class="request-value">{{ request.area.city }}, {{ request.area.district }}</div>
+                {% else %}
+                    <div style="color: #a0aec0; font-style: italic;">N/A</div>
+                {% endif %}
+            </div>
+
+            <!-- Address -->
+            <div class="request-info">
+                <div class="request-label">🏠 Service Address</div>
+                <div class="request-value">{{ request.address }}</div>
+            </div>
+
+            <!-- Cost -->
+            <div class="request-info">
+                <div class="request-label">💰 Total Cost</div>
+                {% if request.cost %}
+                    <div class="request-value" style="font-size: 1.25rem; font-weight: 800; color: #48bb78;">
+                        ${{ "%.2f"|format(request.cost) }}
+                    </div>
+                {% else %}
+                    <div style="color: #a0aec0; font-style: italic;">Not set</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Description -->
+        {% if request.description %}
+        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 2px solid #f0f0f0;">
+            <div class="request-label">📝 Description</div>
+            <div style="color: #4a5568; margin-top: 0.5rem;">{{ request.description }}</div>
+        </div>
+        {% endif %}
+
+        <!-- Customer Actions -->
+        {% set status_val = request.status.value if request.status.value else request.status %}
+        {% set is_paid = request.payment and request.payment.payment_status.value == 'completed' %}
+        {% set has_review = request.review %}
+
+        <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px solid #f0f0f0;">
+            {% if status_val == 'pending' %}
+                <!-- Pending Status -->
+                <div style="padding: 1rem; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 8px; border: 2px solid #fbbf24;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <span style="font-size: 1.5rem;">⏳</span>
+                        <div>
+                            <div style="font-weight: 700; color: #92400e;">Waiting for Provider</div>
+                            <div style="font-size: 0.875rem; color: #b45309; margin-top: 0.25rem;">
+                                Your request is pending provider acceptance
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            {% elif status_val == 'in_progress' %}
+                <!-- In Progress Status -->
+                <div style="padding: 1rem; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); border-radius: 8px; border: 2px solid #60a5fa;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <span style="font-size: 1.5rem;">🔄</span>
+                        <div>
+                            <div style="font-weight: 700; color: #1e3a8a;">Work In Progress</div>
+                            <div style="font-size: 0.875rem; color: #1e40af; margin-top: 0.25rem;">
+                                The provider is currently working on your request
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            {% elif status_val == 'completed' %}
+                <!-- Payment Section -->
+                {% if not is_paid and request.cost %}
+                <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-radius: 12px; border: 2px solid #86efac; padding: 1.5rem; margin-bottom: 1.5rem;">
+                    <div style="font-weight: 700; color: #166534; font-size: 1.125rem; margin-bottom: 1rem;">
+                        💰 Payment Required
+                    </div>
+                    <div style="color: #15803d; margin-bottom: 1.5rem;">
+                        Service completed! Please make payment of <strong style="font-size: 1.125rem;">${{ "%.2f"|format(request.cost) }}</strong>
+                    </div>
+                    
+                    <form 
+                        hx-post="/ui/customer/requests/{{ request.request_id }}/pay"
+                        hx-target="#requests-table-container"
+                        hx-swap="innerHTML"
+                        style="display: flex; flex-direction: column; gap: 1rem;">
+                        
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end;">
+                            <div style="flex: 1; min-width: 200px;">
+                                <label style="display: block; font-weight: 600; color: #166534; margin-bottom: 0.5rem; font-size: 0.875rem;">
+                                    Payment Method
+                                </label>
+                                <select name="payment_method" required class="select" style="width: 100%; background: white;">
+                                    <option value="">Select method...</option>
+                                    <option value="credit_card">💳 Credit Card</option>
+                                    <option value="debit_card">💳 Debit Card</option>
+                                    <option value="cash">💵 Cash</option>
+                                    <option value="paypal">📱 PayPal</option>
+                                    <option value="bank_transfer">🏦 Bank Transfer</option>
+                                </select>
+                            </div>
+                            
+                            <input type="hidden" name="amount" value="{{ request.cost }}">
+                            
+                            <button type="submit" class="btn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); min-width: 150px;">
+                                💰 Pay ${{ "%.2f"|format(request.cost) }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                {% elif is_paid %}
+                <div style="padding: 1rem; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-radius: 8px; border: 2px solid #86efac; margin-bottom: 1.5rem;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <span style="font-size: 1.5rem;">✓</span>
+                        <div>
+                            <div style="font-weight: 700; color: #166534;">Payment Completed</div>
+                            <div style="font-size: 0.875rem; color: #15803d; margin-top: 0.25rem;">
+                                Paid ${{ "%.2f"|format(request.payment.amount) }} via {{ request.payment.payment_method.value.replace('_', ' ').title() }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Review Section -->
+                {% if is_paid and not has_review %}
+                <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 12px; border: 2px solid #fbbf24; padding: 1.5rem;">
+                    <div style="font-weight: 700; color: #92400e; font-size: 1.125rem; margin-bottom: 1rem;">
+                        ⭐ Leave a Review
+                    </div>
+                    <div style="color: #b45309; margin-bottom: 1.5rem;">
+                        Share your experience with this provider to help other customers
+                    </div>
+                    
+                    <form 
+                        hx-post="/ui/customer/requests/{{ request.request_id }}/review"
+                        hx-target="#requests-table-container"
+                        hx-swap="innerHTML"
+                        style="display: flex; flex-direction: column; gap: 1rem;">
+                        
+                        <div>
+                            <label style="display: block; font-weight: 600; color: #92400e; margin-bottom: 0.5rem; font-size: 0.875rem;">
+                                Rating
+                            </label>
+                            <div style="display: flex; gap: 0.5rem;">
+                                {% for i in range(1, 6) %}
+                                <label style="cursor: pointer; font-size: 2rem; transition: transform 0.2s;">
+                                    <input type="radio" name="rating" value="{{ i }}" required style="display: none;" onchange="this.parentElement.parentElement.querySelectorAll('label').forEach((l,idx)=>l.style.opacity=idx<this.value?'1':'0.3')">
+                                    <span style="opacity: 0.3;">⭐</span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label style="display: block; font-weight: 600; color: #92400e; margin-bottom: 0.5rem; font-size: 0.875rem;">
+                                Comment (optional)
+                            </label>
+                            <textarea 
+                                name="comment" 
+                                rows="3" 
+                                placeholder="Share your thoughts about the service..."
+                                class="select"
+                                style="width: 100%; background: white; resize: vertical; font-family: inherit;"></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                            ⭐ Submit Review
+                        </button>
+                    </form>
+                </div>
+
+                {% elif has_review %}
+                <div style="padding: 1rem; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 8px; border: 2px solid #fbbf24;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
+                        <span style="font-size: 1.5rem;">⭐</span>
+                        <div>
+                            <div style="font-weight: 700; color: #92400e;">Your Review</div>
+                            <div style="color: #f59e0b; font-weight: 700; margin-top: 0.25rem;">
+                                {% for i in range(request.review.rating) %}⭐{% endfor %} {{ request.review.rating }}/5
+                            </div>
+                        </div>
+                    </div>
+                    {% if request.review.comment %}
+                        <div style="padding: 0.75rem; background: white; border-radius: 6px; color: #4a5568; font-style: italic;">
+                            "{{ request.review.comment }}"
+                        </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+            {% elif status_val == 'cancelled' %}
+                <!-- Cancelled Status -->
+                <div style="padding: 1rem; background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); border-radius: 8px; border: 2px solid #f87171;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <span style="font-size: 1.5rem;">✗</span>
+                        <div>
+                            <div style="font-weight: 700; color: #991b1b;">Request Cancelled</div>
+                            <div style="font-size: 0.875rem; color: #b91c1c; margin-top: 0.25rem;">
+                                {% if request.cancellation_date %}
+                                    Cancelled on {{ request.cancellation_date.strftime('%b %d, %Y') }}
+                                {% else %}
+                                    This request has been cancelled
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Payment & Review Status Summary (for completed requests) -->
+        {% if status_val == 'completed' %}
+        <div style="margin-top: 1rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+            <!-- Payment Status -->
+            <div style="flex: 1; min-width: 200px; padding: 0.75rem; background: #f7fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                <div style="font-size: 0.75rem; color: #718096; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">
+                    Payment Status
+                </div>
+                {% if request.payment %}
+                    {% if request.payment.payment_status.value == 'completed' %}
+                        <div style="color: #10b981; font-weight: 700;">✓ Paid</div>
+                    {% else %}
+                        <div style="color: #f59e0b; font-weight: 700;">⏳ {{ request.payment.payment_status.value.title() }}</div>
+                    {% endif %}
+                {% else %}
+                    <div style="color: #ef4444; font-weight: 700;">⚠️ Unpaid</div>
+                {% endif %}
+            </div>
+
+            <!-- Review Status -->
+            <div style="flex: 1; min-width: 200px; padding: 0.75rem; background: #f7fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                <div style="font-size: 0.75rem; color: #718096; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">
+                    Review Status
+                </div>
+                {% if request.review %}
+                    <div style="color: #f59e0b; font-weight: 700;">⭐ Reviewed</div>
+                {% else %}
+                    <div style="color: #64748b; font-weight: 700;">⚠️ Not Reviewed</div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty">
+    <div class="empty-icon">📋</div>
+    <h5 style="color: #4a5568; font-size: 1.25rem; margin-bottom: 0.75rem;">No Service Requests Yet</h5>
+    <p style="color: #718096; font-size: 0.9375rem; margin-bottom: 1.5rem;">
+        You haven't created any service requests. Start by finding a provider.
+    </p>
+    <a href="/ui" class="btn">
+        🔍 Find Providers
+    </a>
+</div>
+{% endif %}
+

@@ -1,30 +1,36 @@
-<form hx-post="/ui/service-requests"
-      hx-target="#alert-container"
-      hx-swap="innerHTML"
-      hx-on::after-request="if(event.detail.successful) { hx-get('/ui/requests/table').then(r => document.getElementById('requests-table-container').innerHTML = r); }">
-    <input type="hidden" name="customer_id" value="1">
-    <input type="hidden" name="provider_id" value="{{ provider_id }}">
-    <input type="hidden" name="category_id" value="{{ category_id }}">
-    <input type="hidden" name="area_id" value="{{ area_id }}">
-    
-    <div class="mb-3">
-        <label for="address" class="form-label">Service Address *</label>
-        <input type="text" class="form-control" id="address" name="address" required>
-    </div>
-    
-    <div class="mb-3">
-        <label for="description" class="form-label">Description</label>
-        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
-    </div>
-    
-    <div class="mb-3">
-        <label for="cost" class="form-label">Estimated Cost (optional)</label>
-        <input type="number" class="form-control" id="cost" name="cost" step="0.01" min="0">
-    </div>
-    
-    <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-primary">Submit Request</button>
-        <button type="button" class="btn btn-secondary" onclick="document.getElementById('request-form-container').innerHTML='<p class=\'text-muted\'>Select a provider from the search results to request a service.</p>'">Cancel</button>
-    </div>
-</form>
+<div>
+  <h3 style="font-size: 1.25rem; font-weight: 700; color: #1a202c; margin-bottom: 0.5rem;">Request service</h3>
+  <p class="muted" style="margin-bottom: 1.5rem;">Enter the job address and submit.</p>
 
+  <form
+    method="post"
+    action="/ui/requests"
+    hx-post="/ui/requests"
+    hx-target="#request-form-container"
+    hx-swap="innerHTML"
+    class="form"
+  >
+    <input type="hidden" name="provider_id" value="{{ provider_id }}" />
+    <input type="hidden" name="area_id" value="{{ area_id if area_id else 1 }}" />
+    <input type="hidden" name="category_id" value="1" />
+
+    <div>
+      <label class="label">Address *</label>
+      <input class="input" name="address" placeholder="e.g., Hamra, Beirut" required />
+    </div>
+    
+    <div>
+      <label class="label">Description (Optional)</label>
+      <textarea class="input" name="description" placeholder="Describe what you need..." rows="3"></textarea>
+    </div>
+
+    <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem;">
+      <button class="btn" type="submit" style="flex: 1;">
+        ✓ Submit request
+      </button>
+      <button class="btn btn-secondary" type="button" onclick="location.href='/ui/'">
+        ✗ Cancel
+      </button>
+    </div>
+  </form>
+</div>

@@ -1,115 +1,129 @@
 {% if requests %}
-<div class="table-responsive">
-    <table class="table table-hover">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Category</th>
-                <th>Provider</th>
-                <th>Area</th>
-                <th>Status</th>
-                <th>Date</th>
-                <th>Cost</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for request in requests %}
-            <tr>
-                <td>{{ request.request_id }}</td>
-                <td>
+<div style="display: flex; flex-direction: column; gap: 1.5rem;">
+    {% for request in requests %}
+    <div class="request-card">
+        <!-- Request Header -->
+        <div class="request-header">
+            <div>
+                <div class="request-id">
+                    Request #{{ request.request_id }}
                     {% if request.category %}
-                        {{ request.category.name }}
-                    {% else %}
-                        <span class="text-muted">N/A</span>
+                        — {{ request.category.name }}
                     {% endif %}
-                </td>
-                <td>
-                    {% if request.provider %}
-                        {{ request.provider.first_name }} {{ request.provider.last_name }}
-                    {% else %}
-                        <span class="text-muted">Unassigned</span>
-                    {% endif %}
-                </td>
-                <td>
-                    {% if request.area %}
-                        {{ request.area.city }}, {{ request.area.district }}
-                    {% else %}
-                        <span class="text-muted">N/A</span>
-                    {% endif %}
-                </td>
-                <td>
-                    {% if request.status == 'pending' %}
-                        <span class="badge bg-warning">Pending</span>
-                    {% elif request.status == 'accepted' %}
-                        <span class="badge bg-info">Accepted</span>
-                    {% elif request.status == 'in_progress' %}
-                        <span class="badge bg-primary">In Progress</span>
-                    {% elif request.status == 'completed' %}
-                        <span class="badge bg-success">Completed</span>
-                    {% elif request.status == 'cancelled' %}
-                        <span class="badge bg-danger">Cancelled</span>
-                    {% endif %}
-                </td>
-                <td>{{ request.request_date.strftime('%Y-%m-%d') if request.request_date else 'N/A' }}</td>
-                <td>
-                    {% if request.cost %}
-                        ${{ "%.2f"|format(request.cost) }}
-                    {% else %}
-                        <span class="text-muted">N/A</span>
-                    {% endif %}
-                </td>
-                <td>
-                    <div class="d-flex gap-1 align-items-center">
-                        <form hx-patch="/ui/requests/{{ request.request_id }}/status"
-                              hx-target="#requests-table-container"
-                              hx-swap="innerHTML"
-                              class="d-inline-flex gap-1">
-                            <select name="status" class="form-select form-select-sm" style="width: auto;">
-                                <option value="pending" {% if request.status == 'pending' %}selected{% endif %}>Pending</option>
-                                <option value="accepted" {% if request.status == 'accepted' %}selected{% endif %}>Accepted</option>
-                                <option value="in_progress" {% if request.status == 'in_progress' %}selected{% endif %}>In Progress</option>
-                                <option value="completed" {% if request.status == 'completed' %}selected{% endif %}>Completed</option>
-                                <option value="cancelled" {% if request.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
-                            </select>
-                            <button type="submit" class="btn btn-sm btn-primary">Update</button>
-                        </form>
-                        {% if request.status == 'completed' %}
-                        <button class="btn btn-sm btn-success"
-                                hx-get="/ui/payments/form?request_id={{ request.request_id }}"
-                                hx-target="#payment-form-modal"
-                                hx-swap="innerHTML"
-                                data-bs-toggle="modal"
-                                data-bs-target="#paymentModal">
-                            Pay
-                        </button>
-                        {% endif %}
-                    </div>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-
-<!-- Payment Modal -->
-<div class="modal fade" id="paymentModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Create Payment</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="request-date">
+                    📅 {{ request.request_date.strftime('%b %d, %Y at %I:%M %p') if request.request_date else 'N/A' }}
+                </div>
             </div>
-            <div class="modal-body" id="payment-form-modal">
-                Loading...
+            
+            <!-- Status Badge -->
+            <div>
+                {% if request.status == 'pending' or request.status.value == 'pending' %}
+                    <span class="badge badge-pending">
+                        ⏳ Pending
+                    </span>
+                {% elif request.status == 'accepted' or request.status.value == 'accepted' %}
+                    <span class="badge badge-accepted">
+                        ✓ Accepted
+                    </span>
+                {% elif request.status == 'in_progress' or request.status.value == 'in_progress' %}
+                    <span class="badge badge-in_progress">
+                        🔄 In Progress
+                    </span>
+                {% elif request.status == 'completed' or request.status.value == 'completed' %}
+                    <span class="badge badge-completed">
+                        ✓ Completed
+                    </span>
+                {% elif request.status == 'cancelled' or request.status.value == 'cancelled' %}
+                    <span class="badge badge-cancelled">
+                        ✗ Cancelled
+                    </span>
+                {% endif %}
             </div>
         </div>
+
+        <!-- Request Body -->
+        <div class="request-body">
+            <!-- Provider -->
+            <div class="request-info">
+                <div class="request-label">👤 Provider</div>
+                {% if request.provider %}
+                    <div class="request-value">{{ request.provider.first_name }} {{ request.provider.last_name }}</div>
+                {% else %}
+                    <div style="color: #a0aec0; font-style: italic;">Unassigned</div>
+                {% endif %}
+            </div>
+
+            <!-- Location -->
+            <div class="request-info">
+                <div class="request-label">📍 Location</div>
+                {% if request.area %}
+                    <div class="request-value">{{ request.area.city }}, {{ request.area.district }}</div>
+                {% else %}
+                    <div style="color: #a0aec0; font-style: italic;">N/A</div>
+                {% endif %}
+            </div>
+
+            <!-- Address -->
+            <div class="request-info">
+                <div class="request-label">🏠 Address</div>
+                <div class="request-value">{{ request.address }}</div>
+            </div>
+
+            <!-- Cost -->
+            <div class="request-info">
+                <div class="request-label">💰 Cost</div>
+                {% if request.cost %}
+                    <div class="request-value" style="font-size: 1.25rem; font-weight: 800; color: #48bb78;">
+                        ${{ "%.2f"|format(request.cost) }}
+                    </div>
+                {% else %}
+                    <div style="color: #a0aec0; font-style: italic;">Not set</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Description -->
+        {% if request.description %}
+        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 2px solid #f0f0f0;">
+            <div class="request-label">📝 Description</div>
+            <div style="color: #4a5568; margin-top: 0.5rem;">{{ request.description }}</div>
+        </div>
+        {% endif %}
+
+        <!-- Actions -->
+        <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px solid #f0f0f0;">
+            <div class="request-label" style="margin-bottom: 0.75rem;">⚙️ Update Status</div>
+            <form hx-patch="/ui/requests/{{ request.request_id }}/status"
+                  hx-target="#requests-table-container"
+                  hx-swap="innerHTML"
+                  style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: flex-end;">
+                <div style="flex: 1; min-width: 200px;">
+                    <select name="status" class="select" style="width: 100%;">
+                        <option value="pending" {% if request.status == 'pending' or request.status.value == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="accepted" {% if request.status == 'accepted' or request.status.value == 'accepted' %}selected{% endif %}>Accepted</option>
+                        <option value="in_progress" {% if request.status == 'in_progress' or request.status.value == 'in_progress' %}selected{% endif %}>In Progress</option>
+                        <option value="completed" {% if request.status == 'completed' or request.status.value == 'completed' %}selected{% endif %}>Completed</option>
+                        <option value="cancelled" {% if request.status == 'cancelled' or request.status.value == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn" style="min-width: 150px;">
+                    💾 Update
+                </button>
+            </form>
+        </div>
     </div>
+    {% endfor %}
 </div>
 {% else %}
-<div class="alert alert-info">
-    <p class="mb-0">No service requests found. Create a request from the home page.</p>
-    <a href="/ui" class="btn btn-primary btn-sm mt-2">Go to Home</a>
+<div class="empty">
+    <div class="empty-icon">📋</div>
+    <h5 style="color: #4a5568; font-size: 1.25rem; margin-bottom: 0.75rem;">No Service Requests Yet</h5>
+    <p style="color: #718096; font-size: 0.9375rem; margin-bottom: 1.5rem;">
+        You haven't created any service requests. Start by finding a provider.
+    </p>
+    <a href="/ui" class="btn">
+        🔍 Find Providers
+    </a>
 </div>
 {% endif %}
-

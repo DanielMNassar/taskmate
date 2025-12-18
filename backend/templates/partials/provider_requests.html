@@ -1,0 +1,213 @@
+{% if requests %}
+<div style="display: flex; flex-direction: column; gap: 1.5rem;">
+    {% for request in requests %}
+    <div class="request-card">
+        <!-- Request Header -->
+        <div class="request-header">
+            <div>
+                <div class="request-id">
+                    Request #{{ request.request_id }}
+                    {% if request.category %}
+                        — {{ request.category.name }}
+                    {% endif %}
+                </div>
+                <div class="request-date">
+                    📅 {{ request.request_date.strftime('%b %d, %Y at %I:%M %p') if request.request_date else 'N/A' }}
+                </div>
+            </div>
+            
+            <!-- Status Badge -->
+            <div>
+                {% if request.status == 'pending' or request.status.value == 'pending' %}
+                    <span class="badge badge-pending">
+                        ⏳ Pending
+                    </span>
+                {% elif request.status == 'accepted' or request.status.value == 'accepted' %}
+                    <span class="badge badge-accepted">
+                        ✓ Accepted
+                    </span>
+                {% elif request.status == 'in_progress' or request.status.value == 'in_progress' %}
+                    <span class="badge badge-in_progress">
+                        🔄 In Progress
+                    </span>
+                {% elif request.status == 'completed' or request.status.value == 'completed' %}
+                    <span class="badge badge-completed">
+                        ✓ Completed
+                    </span>
+                {% elif request.status == 'cancelled' or request.status.value == 'cancelled' %}
+                    <span class="badge badge-cancelled">
+                        ✗ Cancelled
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Request Body -->
+        <div class="request-body">
+            <!-- Customer -->
+            <div class="request-info">
+                <div class="request-label">👤 Customer</div>
+                {% if request.customer %}
+                    <div class="request-value">{{ request.customer.first_name }} {{ request.customer.last_name }}</div>
+                    <div style="color: #718096; font-size: 0.875rem;">📧 {{ request.customer.email }}</div>
+                    <div style="color: #718096; font-size: 0.875rem;">📞 {{ request.customer.phone }}</div>
+                {% else %}
+                    <div style="color: #a0aec0; font-style: italic;">Unknown</div>
+                {% endif %}
+            </div>
+
+            <!-- Location -->
+            <div class="request-info">
+                <div class="request-label">📍 Location</div>
+                {% if request.area %}
+                    <div class="request-value">{{ request.area.city }}, {{ request.area.district }}</div>
+                {% else %}
+                    <div style="color: #a0aec0; font-style: italic;">N/A</div>
+                {% endif %}
+            </div>
+
+            <!-- Address -->
+            <div class="request-info">
+                <div class="request-label">🏠 Service Address</div>
+                <div class="request-value">{{ request.address }}</div>
+            </div>
+
+            <!-- Cost -->
+            <div class="request-info">
+                <div class="request-label">💰 Quoted Price</div>
+                {% if request.cost %}
+                    <div class="request-value" style="font-size: 1.25rem; font-weight: 800; color: #48bb78;">
+                        ${{ "%.2f"|format(request.cost) }}
+                    </div>
+                {% else %}
+                    <div style="color: #a0aec0; font-style: italic;">Not set</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Description -->
+        {% if request.description %}
+        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 2px solid #f0f0f0;">
+            <div class="request-label">📝 Description</div>
+            <div style="color: #4a5568; margin-top: 0.5rem;">{{ request.description }}</div>
+        </div>
+        {% endif %}
+
+        <!-- Provider Actions -->
+        <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px solid #f0f0f0;">
+            {% set status_val = request.status.value if request.status.value else request.status %}
+            
+            {% if status_val == 'pending' %}
+                <!-- Accept Button -->
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <button 
+                        hx-post="/ui/provider/requests/{{ request.request_id }}/accept"
+                        hx-target="#requests-table-container"
+                        hx-swap="innerHTML"
+                        class="btn"
+                        style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); flex: 1;">
+                        ✓ Accept Request
+                    </button>
+                    <button 
+                        hx-post="/ui/provider/requests/{{ request.request_id }}/cancel"
+                        hx-target="#requests-table-container"
+                        hx-swap="innerHTML"
+                        hx-confirm="Are you sure you want to decline this request?"
+                        class="btn btn-secondary"
+                        style="min-width: 120px;">
+                        ✗ Decline
+                    </button>
+                </div>
+                
+            {% elif status_val == 'in_progress' %}
+                <!-- Complete Button -->
+                <button 
+                    hx-post="/ui/provider/requests/{{ request.request_id }}/complete"
+                    hx-target="#requests-table-container"
+                    hx-swap="innerHTML"
+                    class="btn"
+                    style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+                    ✓ Mark as Completed
+                </button>
+                
+            {% elif status_val == 'completed' %}
+                <div style="padding: 1rem; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-radius: 8px; border: 2px solid #86efac;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <span style="font-size: 1.5rem;">✓</span>
+                        <div>
+                            <div style="font-weight: 700; color: #166534;">Job Completed!</div>
+                            <div style="font-size: 0.875rem; color: #15803d; margin-top: 0.25rem;">
+                                Waiting for customer payment
+                                {% if request.payment and request.payment.payment_status.value == 'completed' %}
+                                    — <span style="font-weight: 600;">💰 Payment Received</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            {% else %}
+                <div style="color: #718096; font-style: italic;">
+                    No actions available for {{ status_val }} status
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Payment & Review Status -->
+        {% if status_val == 'completed' %}
+        <div style="margin-top: 1rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+            <!-- Payment Status -->
+            <div style="flex: 1; min-width: 200px; padding: 0.75rem; background: #f7fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                <div style="font-size: 0.75rem; color: #718096; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">
+                    Payment
+                </div>
+                {% if request.payment %}
+                    {% if request.payment.payment_status.value == 'completed' %}
+                        <div style="color: #10b981; font-weight: 700;">✓ Paid</div>
+                        <div style="font-size: 0.875rem; color: #718096; margin-top: 0.25rem;">
+                            ${{ "%.2f"|format(request.payment.amount) }} via {{ request.payment.payment_method.value.replace('_', ' ').title() }}
+                        </div>
+                    {% else %}
+                        <div style="color: #f59e0b; font-weight: 700;">⏳ {{ request.payment.payment_status.value.title() }}</div>
+                    {% endif %}
+                {% else %}
+                    <div style="color: #64748b;">Not paid yet</div>
+                {% endif %}
+            </div>
+
+            <!-- Review Status -->
+            <div style="flex: 1; min-width: 200px; padding: 0.75rem; background: #f7fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                <div style="font-size: 0.75rem; color: #718096; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">
+                    Review
+                </div>
+                {% if request.review %}
+                    <div style="color: #f59e0b; font-weight: 700;">
+                        {% for i in range(request.review.rating) %}⭐{% endfor %} {{ request.review.rating }}/5
+                    </div>
+                    {% if request.review.comment %}
+                        <div style="font-size: 0.875rem; color: #718096; margin-top: 0.25rem; font-style: italic;">
+                            "{{ request.review.comment[:50] }}{% if request.review.comment|length > 50 %}...{% endif %}"
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div style="color: #64748b;">Not reviewed yet</div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty">
+    <div class="empty-icon">📋</div>
+    <h5 style="color: #4a5568; font-size: 1.25rem; margin-bottom: 0.75rem;">No Service Requests</h5>
+    <p style="color: #718096; font-size: 0.9375rem; margin-bottom: 1.5rem;">
+        You don't have any incoming service requests yet. Customers will find you through the marketplace!
+    </p>
+    <a href="/ui" class="btn btn-secondary">
+        ← Back to Home
+    </a>
+</div>
+{% endif %}
+
